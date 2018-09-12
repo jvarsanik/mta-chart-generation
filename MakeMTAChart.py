@@ -13,6 +13,12 @@ from dateutil.parser import parse
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+# User variables
+PLOT_LEVEL = 2
+DNAME_IN = 'output'
+FNAME_IN = 'CURRENT.csv'
+
+
 # FUnctions!
 def calculateLevel(task_number):
     return len(task_number.split('.'))
@@ -70,14 +76,10 @@ def num(s):
     except ValueError:
         return float(s)
 
-# inpout parameters
-#TASKS_TO_PLOT = ['Sensor', 'Data Viewer', 'Summary Views']
 
-DNAME_IN = 'output'
-
-
+## Script is here
 # Check for CURRENT.csv
-data_fname = os.path.join(DNAME_IN, 'CURRENT.csv')
+data_fname = os.path.join(DNAME_IN, FNAME_IN)
 
 if not os.path.isfile(data_fname):
     print('No CURRENT.csv file at location: ', data_fname)
@@ -93,16 +95,8 @@ dates_calculated = convertListToDates(dates_calculated_str)
 
 
 # Initialize the holders
-task_names = []
-end_dates = []
-task_numbers = []
-levels = []
-top_parents = []
-latest_end_dates = []
-
-end_dates_dict = {}
-
 task_objs = []
+latest_end_dates = []
 
 # loop through file and populate the holders
 for line in reader:
@@ -138,10 +132,8 @@ for line in reader:
     if not end_dates_filtered1:
         continue
 
-    # filter dates so the lines stop when they hit their completino date
+    # filter dates so the lines stop when they hit their completion date
     end_dates_filtered, calculated_dates_filtered = filterEndDatesToNotGoPastCalculatedDate(end_dates_filtered1, calculated_dates_filtered1)
-
-   
 
     #update the data holder
     this_obj = {}
@@ -177,8 +169,6 @@ this_month = datetime(year=n.year, month=n.month, day=1)
 max_date = this_month
 min_date = this_month
 
-PLOT_LEVEL = 3
-
 # % update max and min 
 if max(dates_calculated) > max_date:
     max_date = max(dates_calculated)
@@ -186,6 +176,7 @@ if max(dates_calculated) > max_date:
 if min(dates_calculated) < min_date:
     min_date = min(dates_calculated)
 
+# Go through each task and add to plot
 for task in task_objs:
     this_level = task['level']
     this_name = task['task_name']
