@@ -102,6 +102,8 @@ latest_end_dates = []
 
 end_dates_dict = {}
 
+task_objs = []
+
 # loop through file and populate the holders
 for line in reader:
 
@@ -129,30 +131,44 @@ for line in reader:
     if not is_good:
         continue
 
-    # Update all the data holders
-    task_numbers.append(this_task_number)
-    task_names.append(this_task_name)
-    end_dates.append(these_end_dates)
-    latest_end_dates.append(max(these_end_dates))
-    end_dates_dict[this_task_name] = these_end_dates
-    levels.append(this_level)
-    top_parents.append(calculateTopParentTask(this_task_number))
+
+    # Filter the dates to only plot dates with data
+    end_dates_filtered1, calculated_dates_filtered1 = filterDatesToOnlyPlotDatesWithData(these_end_dates, dates_calculated)
+
+    if not end_dates_filtered1:
+        continue
+
+    # filter dates so the lines stop when they hit their completino date
+    end_dates_filtered, calculated_dates_filtered = filterEndDatesToNotGoPastCalculatedDate(end_dates_filtered1, calculated_dates_filtered1)
+
+   
+
+    #update the data holder
+    this_obj = {}
+    this_obj['task_number'] = this_task_number
+    this_obj['task_name'] = this_task_name
+    this_obj['end_dates'] = end_dates_filtered
+    this_obj['latest_end_date'] = max(end_dates_filtered)
+    this_obj['calculated_dates'] = calculated_dates_filtered
+    this_obj['level'] = this_level
+    this_obj['top_parent'] = calculateTopParentTask(this_task_number)
+
+    # put this in the list
+    task_objs.append(this_obj)
+
+    # keep list of latest end dates, for sorting later
+    latest_end_dates.append(max(end_dates_filtered))
 
 
 # close the csv file (bad practivce, shoud do in t with...)
 csvfile.close()
 
 
-# Sort the arrays, to plot them in the right order (longest on top(plotted first))
+# Sort the array, to plot them in the right order (longest on top(plotted first))
 inds = range(len(latest_end_dates))
 sorted_inds = [x for _,x in sorted(zip(latest_end_dates, inds), reverse=True)]
 
-task_numbers = [task_numbers[i] for i in sorted_inds]
-task_names = [task_names[i] for i in sorted_inds]
-end_dates = [end_dates[i] for i in sorted_inds]
-latest_end_dates = [latest_end_dates[i] for i in sorted_inds]
-levels = [levels[i] for i in sorted_inds]
-top_parents = [top_parents[i] for i in sorted_inds]
+task_objs = [task_objs[i] for i in sorted_inds]
 
 #  Now plot the level you want (will plot this level and above (lower level ( 1st is highest level))
 fig, ax = plt.subplots()
@@ -170,37 +186,28 @@ if max(dates_calculated) > max_date:
 if min(dates_calculated) < min_date:
     min_date = min(dates_calculated)
 
-for i in range(len(task_numbers)):
-    this_level = levels[i]
+for task in task_objs:
+    this_level = task['level']
+    this_name = task['task_name']
+    these_end_dates = task['end_dates']
+    thse_calculated_dates = task['calculated_dates']
 
     #print(task_numbers[i])
     # Check level
     if this_level > PLOT_LEVEL:
         continue
-    
-
-    #print('Filtering ', end_dates[i])
-    end_dates_filtered1, calculated_dates_filtered1 = filterDatesToOnlyPlotDatesWithData(end_dates[i], dates_calculated)
-
-    if not end_dates_filtered1:
-        continue
-
-
-    end_dates_filtered, calculated_dates_filtered = filterEndDatesToNotGoPastCalculatedDate(end_dates_filtered1, calculated_dates_filtered1)
-
-   
 
     # % update max and min 
-    if max(end_dates_filtered) > max_date:
-        max_date = max(end_dates_filtered)
+    if max(these_end_dates) > max_date:
+        max_date = max(these_end_dates)
 
-    if min(end_dates_filtered) < min_date:
-        min_date = min(end_dates_filtered)
+    if min(these_end_dates) < min_date:
+        min_date = min(these_end_dates)
 
-    print('Plotting ', task_names[i], ': ',   convertListOfDatesToString(end_dates_filtered))
+    print('Plotting ', this_name, ': ',   convertListOfDatesToString(these_end_dates))
 
     # add to plot
-    ax.plot(calculated_dates_filtered, end_dates_filtered, label=task_names[i])
+    ax.plot(thse_calculated_dates, these_end_dates, label=this_name)
 
 # Do plot formatting
 
