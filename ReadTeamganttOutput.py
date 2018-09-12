@@ -25,7 +25,7 @@ todays_date_pretty = date.today().strftime('%m/%d/%Y')
 
 
 # for each file, then read it
-fname = '20180716.csv'
+fname = 'ExampleTeamGanttOutput.csv'
 
 fname_full = os.path.join(DNAME_IN, fname)
 
@@ -61,7 +61,7 @@ current_fname = template_fname
 output_fname = os.path.join(DNAME_OUT, todays_date + '.csv')
 
 if not os.path.isfile(template_fname):
-    template_fname = os.path.join(DNAME_OUT, 'TEMPLATE.csv')
+    template_fname = os.path.join(DNAME_OUT, 'EXAMPLE_TEMPLATE.csv')
 
 t = open(template_fname)
 o = open(output_fname, 'w')
