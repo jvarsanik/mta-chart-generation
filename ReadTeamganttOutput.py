@@ -13,6 +13,10 @@ from shutil import copyfile, copy
 DNAME_IN = 'input'
 DNAME_OUT = 'output'
 
+fname_in = 'ExampleTeamGanttOutput.csv'
+fname_out = 'EXAMPLE_CURRENT.csv'
+base_template = 'EXAMPLE_TEMPLATE.csv'
+
 task_name_header  = 'Name / Title'
 end_date_header = 'End Date'
 task_number_header = 'WBS #'
@@ -21,13 +25,8 @@ task_number_header = 'WBS #'
 todays_date = date.today().strftime('%Y%m%d')
 todays_date_pretty = date.today().strftime('%m/%d/%Y')
 
-# get directory listing
-
-
-# for each file, then read it
-fname = 'ExampleTeamGanttOutput.csv'
-
-fname_full = os.path.join(DNAME_IN, fname)
+# Read file
+fname_full = os.path.join(DNAME_IN, fname_in)
 
 # get the headers to get the column labels
 csvfile = open(fname_full)
@@ -56,12 +55,12 @@ csvfile.close()
 #print(end_dates_dict)
 
 # Open template outpout and append to the completion dates...
-template_fname = os.path.join(DNAME_OUT, 'CURRENT.csv')
+template_fname = os.path.join(DNAME_OUT, fname_out)
 current_fname = template_fname
 output_fname = os.path.join(DNAME_OUT, todays_date + '.csv')
 
 if not os.path.isfile(template_fname):
-    template_fname = os.path.join(DNAME_OUT, 'EXAMPLE_TEMPLATE.csv')
+    template_fname = os.path.join(DNAME_OUT, base_template)
 
 t = open(template_fname)
 o = open(output_fname, 'w')

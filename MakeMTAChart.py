@@ -21,7 +21,7 @@ import numpy as np
 # User variables
 PLOT_LEVEL = 2
 DNAME_IN = 'output'
-FNAME_IN = 'CURRENT.csv'
+FNAME_IN = 'EXAMPLE_CURRENT.csv'
 
 
 # FUnctions!
