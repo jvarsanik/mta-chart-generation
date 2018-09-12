@@ -1,4 +1,5 @@
 # Ignore input/outputs
+*.csv
 
 # Ignore apple system files
 .DS_Store
