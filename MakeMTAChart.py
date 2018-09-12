@@ -6,12 +6,17 @@ import os
 import os.path
 from shutil import copyfile, copy
 
+# Dates
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
 
 # Plotting
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from matplotlib.patches import Polygon
+
+# numpy 
+import numpy as np
 
 # User variables
 PLOT_LEVEL = 2
@@ -207,15 +212,41 @@ max_date = datetime(max_date.year, max_date.month + 1, 1)
 ax.set_xlim(min_date, max_date)
 ax.set_ylim(min_date, max_date)
 
+# set the aspect ratio 
+ax.set_aspect('equal')
+
+# adjust the grid
+# every monday
+# mondays = WeekdayLocator(MONDAY)
+# months = MonthLocator(range(1, 13), bymonthday=1, interval=3)
+# monthsFmt = DateFormatter("%b '%y")
+
+ax.autoscale_view()
+#ax.xaxis.grid(False, 'major')
+#ax.xaxis.grid(True, 'minor')
+ax.grid(True)
+
+# set the axes to be below other elements (so the patch hides the grid)
+ax.set_axisbelow(True)
+
+# Plot the triangle to cover the grid in the lower half
+# triangle_points = np.array([[min_date, min_date], [max_date, min_date], [max_date, max_date]])
+start = mdates.date2num(min_date)
+end = mdates.date2num(max_date)
+triangle_points = np.array([[start, start], [end, start], [end, end]])
+triangle = Polygon(triangle_points, closed=True, color='white')
+ax.add_patch(triangle)
+
 # PLot the target line
 target_line_dates = [min_date, max_date]
 ax.plot(target_line_dates, target_line_dates, color='black')
 
-# adjust the lavels
+
+
+# adjust the labels
 ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
 ax.format_ydata = mdates.DateFormatter('%Y-%m-%d')
 fig.autofmt_xdate()
-
 
 #  Show the legend
 ax.legend()
