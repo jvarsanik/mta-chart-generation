@@ -19,10 +19,12 @@ from matplotlib.patches import Polygon
 import numpy as np
 
 # User variables
-PLOT_LEVEL = 2
+PLOT_LEVEL = 4
 DNAME_IN = 'output'
-FNAME_IN = 'EXAMPLE_CURRENT.csv'
+FNAME_IN = 'TechTeamCurrent.csv'
 
+TASKS_TO_INCLUDE = ['1.1.2']
+TASKS_TO_EXCLUDE = []
 
 # FUnctions!
 def calculateLevel(task_number):
@@ -32,7 +34,37 @@ def calculateTopParentTask(task_number):
     split_num = task_number.split('.')
     return split_num[0] + '.' + split_num[1]
 
+def isSubtask(task_number, super_task_number):
+    
+    this_val =  task_number.startswith(super_task_number)
+    if this_val == True:
+        print('Task', task_number, ' IS subtask of ', super_task_number)
+    else:
+        print('Task', task_number, ' IS NOT subtask of ', super_task_number)
+
+    return this_val
+
+def checkIfShouldInclude(task_number):
+    # First, check if this task is explicitly included
+    if TASKS_TO_INCLUDE:
+        for task in TASKS_TO_INCLUDE:
+            if isSubtask(task_number, task):
+                return True
+        
+        # if get here, have a list of tasks to include, and task_number is not in them, so exclude
+        return False
+    
+    # Next, check if the task is exploicitly excluded
+    if TASKS_TO_EXCLUDE:
+        for task in TASKS_TO_EXCLUDE:
+            if isSubtask(task_number, task):
+                return False
+        
+        # if get here, have a list of tasks to exclude, and task_number is not in them, so include
+        return True
+
 def convertToDate(date_in):
+    date_in = date_in.strip()
     #return datetime.strptime(date_in, '%m/%d/%Y')
     date_out = ''
     if not date_in:
@@ -98,6 +130,7 @@ row1 = next(reader)
 dates_calculated_str = row1[2:]
 dates_calculated = convertListToDates(dates_calculated_str)
 
+# ensure these dates are in order!
 
 # Initialize the holders
 task_objs = []
@@ -108,6 +141,9 @@ for line in reader:
 
     this_task_number = line.pop(0)
     this_task_name = line.pop(0)
+
+    # if this_task_name == 'WebUI - API for new user':
+    #     print('Pause here')
 
     if not this_task_number:
         continue
@@ -121,14 +157,14 @@ for line in reader:
     these_end_dates = convertListToDates(line)
 
     # Check that we have dates
-    is_good = True
-    for this_date in these_end_dates:
-        if not this_date:
-            is_good = False
-            break
+    # is_good = True
+    # for this_date in these_end_dates:
+    #     if not this_date:
+    #         is_good = False
+    #         break
     
-    if not is_good:
-        continue
+    # if not is_good:
+    #     continue
 
 
     # Filter the dates to only plot dates with data
@@ -184,6 +220,7 @@ if min(dates_calculated) < min_date:
 # Go through each task and add to plot
 for task in task_objs:
     this_level = task['level']
+    this_number = task['task_number']
     this_name = task['task_name']
     these_end_dates = task['end_dates']
     thse_calculated_dates = task['calculated_dates']
@@ -191,6 +228,10 @@ for task in task_objs:
     #print(task_numbers[i])
     # Check level
     if this_level > PLOT_LEVEL:
+        continue
+
+    # Check if shoudl include
+    if not checkIfShouldInclude(this_number):
         continue
 
     # % update max and min 
@@ -242,7 +283,6 @@ target_line_dates = [min_date, max_date]
 ax.plot(target_line_dates, target_line_dates, color='black')
 
 
-
 # adjust the labels
 ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
 ax.format_ydata = mdates.DateFormatter('%Y-%m-%d')
@@ -250,6 +290,13 @@ fig.autofmt_xdate()
 
 #  Show the legend
 ax.legend()
+
+# Shrink current axis by 20%
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+
+# Put a legend to the right of the current axis
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 # show the plot
 plt.show()
