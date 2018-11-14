@@ -28,9 +28,14 @@ task_number_header = 'WBS #'
 # get today's date
 todays_date = date.today().strftime('%Y%m%d')
 
+# Make the blank holder to hold all dates
+all_data = {}
+
 # Loop through each file
 for fname_in in os.listdir(DNAME_IN):
     if fname_in.startswith(file_prefix):
+        # Print update
+        print('Reading ', fname_in)
 
         # get info 
         todays_date = date.today().strftime('%Y%m%d')
@@ -68,38 +73,50 @@ for fname_in in os.listdir(DNAME_IN):
         # close the csv file (bad practivce, shoud do in t with...)
         csvfile.close()
 
+        # Store ain holder
+        all_data[calculated_date_string_pretty] = end_dates_dict
         #print(end_dates_dict)
 
-        # Open template outpout and append to the completion dates...
-        # This is either the running current status, or a new template with a lies to tasks
-        template_fname = os.path.join(DNAME_OUT, fname_out)  # final output name "current"
-        current_fname = template_fname # final output name "current"
-        output_fname = os.path.join(DNAME_OUT, todays_date + '.csv')  # file saved with this current (intermediate) updated
 
-        # if a final output does not exist, use the base template (list of tasks)
-        if not os.path.isfile(template_fname):
-            template_fname = os.path.join(DNAME_OUT, base_template)
-
-        t = open(template_fname)
-        o = open(output_fname, 'w')
-
-        reader = csv.reader(t)
-        writer = csv.writer(o)
-
-        for line in reader:
-            print("line in: ", line)
-            if line[1] in end_dates_dict:
-                line.append(end_dates_dict[line[1]])
-            else:
-                line.append(' ') # make placeholder if dat is missing this week...
+# Sort all dates and loop through them to populate the csv to have all data
 
 
-            writer.writerow(line)
-            print('line out: ', line)
+# Open template outpout and append to the completion dates...
+# This is either the running current status, or a new template with a lies to tasks
+template_fname = os.path.join(DNAME_OUT, base_template)
+output_fname = os.path.join(DNAME_OUT, todays_date + '.csv')  # file saved with this current (intermediate) updated
 
-        # close things
-        t.close()
-        o.close()
+# Open the streams
+t = open(template_fname)
+o = open(output_fname, 'w')
 
-        # copy to current
-        copy(output_fname, current_fname)
+reader = csv.reader(t)
+writer = csv.writer(o)
+
+print('Writing output to ', output_fname)
+
+
+# For each line in the template, add the dates from the dictionaries
+for line in reader:
+    #print("line in: ", line)
+    for this_date in sorted(all_data.keys()):
+        end_dates_dict = all_data[this_date]
+        if line[1] in end_dates_dict:
+            line.append(end_dates_dict[line[1]])
+        else:
+            line.append(' ') # make placeholder if dat is missing this week...
+
+
+    writer.writerow(line)
+    #print('line out: ', line)
+
+# close things
+t.close()
+o.close()
+
+# copy to current
+current_fname = os.path.join(DNAME_OUT, fname_out)  # final output name "current"
+print('Done writing, copying to ', current_fname)
+copy(output_fname, current_fname)
+
+print('DONE')

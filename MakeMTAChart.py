@@ -19,11 +19,11 @@ from matplotlib.patches import Polygon
 import numpy as np
 
 # User variables
-PLOT_LEVEL = 4
+PLOT_LEVEL = 3
 DNAME_IN = 'output'
 FNAME_IN = 'TechTeamCurrent.csv'
 
-TASKS_TO_INCLUDE = ['1.1.2']
+TASKS_TO_INCLUDE = [] #['1.1.2']
 TASKS_TO_EXCLUDE = []
 
 # FUnctions!
@@ -62,6 +62,9 @@ def checkIfShouldInclude(task_number):
         
         # if get here, have a list of tasks to exclude, and task_number is not in them, so include
         return True
+
+    # If we get here, we do not have a list of tasks to include or exclude, so include everything
+    return True
 
 def convertToDate(date_in):
     date_in = date_in.strip()
@@ -211,11 +214,21 @@ max_date = this_month
 min_date = this_month
 
 # % update max and min 
-if max(dates_calculated) > max_date:
-    max_date = max(dates_calculated)
+# if max(dates_calculated) > max_date:
+#     max_date = max(dates_calculated)
+    
 
 if min(dates_calculated) < min_date:
     min_date = min(dates_calculated)
+
+max_date = max(latest_end_dates)
+
+# find range to get amount to shift overlapping plots (for aesthetics)
+this_plot_range = max_date-min_date
+this_plot_epsilon = this_plot_range / 100
+
+# store list of datapoints to detect collisions (so we can offset overlapping plots)
+data_points = {}
 
 # Go through each task and add to plot
 for task in task_objs:
@@ -223,7 +236,7 @@ for task in task_objs:
     this_number = task['task_number']
     this_name = task['task_name']
     these_end_dates = task['end_dates']
-    thse_calculated_dates = task['calculated_dates']
+    these_calculated_dates = task['calculated_dates']
 
     #print(task_numbers[i])
     # Check level
@@ -241,10 +254,22 @@ for task in task_objs:
     if min(these_end_dates) < min_date:
         min_date = min(these_end_dates)
 
+    # Check for collisions - add a littel time until there is no collision
+    for ind, this_calculated_date in enumerate(these_calculated_dates):
+        while data_points and (this_calculated_date in data_points) and (these_end_dates[ind] in data_points[this_calculated_date]):
+            print('Collision for ', this_name, ' on ', this_calculated_date, ' - adding some time')
+            these_end_dates[ind] = these_end_dates[ind] + this_plot_epsilon
+
+        #  Add to all data points store to look for more collisions
+        if this_calculated_date in data_points:
+            data_points[this_calculated_date].append(these_end_dates[ind])
+        else:
+            data_points[this_calculated_date] = [these_end_dates[ind]]
+
     print('Plotting ', this_name, ': ',   convertListOfDatesToString(these_end_dates))
 
     # add to plot
-    ax.plot(thse_calculated_dates, these_end_dates, label=this_name)
+    ax.plot(these_calculated_dates, these_end_dates, label=this_name)
 
 # Do plot formatting
 
