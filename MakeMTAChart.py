@@ -9,6 +9,7 @@ from shutil import copyfile, copy
 # Dates
 from datetime import date, datetime, timedelta
 from dateutil.parser import parse
+from dateutil.relativedelta import relativedelta
 
 # Plotting
 import matplotlib.pyplot as plt
@@ -19,11 +20,11 @@ from matplotlib.patches import Polygon
 import numpy as np
 
 # User variables
-PLOT_LEVEL = 3
+PLOT_LEVEL = 4
 DNAME_IN = 'output'
 FNAME_IN = 'TechTeamCurrent.csv'
 
-TASKS_TO_INCLUDE = [] #['1.1.2']
+TASKS_TO_INCLUDE = ['1.1.2']
 TASKS_TO_EXCLUDE = []
 
 # FUnctions!
@@ -35,13 +36,7 @@ def calculateTopParentTask(task_number):
     return split_num[0] + '.' + split_num[1]
 
 def isSubtask(task_number, super_task_number):
-    
     this_val =  task_number.startswith(super_task_number)
-    if this_val == True:
-        print('Task', task_number, ' IS subtask of ', super_task_number)
-    else:
-        print('Task', task_number, ' IS NOT subtask of ', super_task_number)
-
     return this_val
 
 def checkIfShouldInclude(task_number):
@@ -145,9 +140,6 @@ for line in reader:
     this_task_number = line.pop(0)
     this_task_name = line.pop(0)
 
-    # if this_task_name == 'WebUI - API for new user':
-    #     print('Pause here')
-
     if not this_task_number:
         continue
 
@@ -158,17 +150,6 @@ for line in reader:
         continue
 
     these_end_dates = convertListToDates(line)
-
-    # Check that we have dates
-    # is_good = True
-    # for this_date in these_end_dates:
-    #     if not this_date:
-    #         is_good = False
-    #         break
-    
-    # if not is_good:
-    #     continue
-
 
     # Filter the dates to only plot dates with data
     end_dates_filtered1, calculated_dates_filtered1 = filterDatesToOnlyPlotDatesWithData(these_end_dates, dates_calculated)
@@ -184,7 +165,7 @@ for line in reader:
     this_obj['task_number'] = this_task_number
     this_obj['task_name'] = this_task_name
     this_obj['end_dates'] = end_dates_filtered
-    this_obj['latest_end_date'] = max(end_dates_filtered)
+    this_obj['latest_end_date'] = end_dates_filtered[-1]
     this_obj['calculated_dates'] = calculated_dates_filtered
     this_obj['level'] = this_level
     this_obj['top_parent'] = calculateTopParentTask(this_task_number)
@@ -193,7 +174,7 @@ for line in reader:
     task_objs.append(this_obj)
 
     # keep list of latest end dates, for sorting later
-    latest_end_dates.append(max(end_dates_filtered))
+    latest_end_dates.append(this_obj['latest_end_date'])
 
 
 # close the csv file (bad practivce, shoud do in t with...)
@@ -213,11 +194,6 @@ this_month = datetime(year=n.year, month=n.month, day=1)
 max_date = this_month
 min_date = this_month
 
-# % update max and min 
-# if max(dates_calculated) > max_date:
-#     max_date = max(dates_calculated)
-    
-
 if min(dates_calculated) < min_date:
     min_date = min(dates_calculated)
 
@@ -226,6 +202,9 @@ max_date = max(latest_end_dates)
 # find range to get amount to shift overlapping plots (for aesthetics)
 this_plot_range = max_date-min_date
 this_plot_epsilon = this_plot_range / 100
+
+# reset max date
+max_date = min_date
 
 # store list of datapoints to detect collisions (so we can offset overlapping plots)
 data_points = {}
@@ -238,7 +217,6 @@ for task in task_objs:
     these_end_dates = task['end_dates']
     these_calculated_dates = task['calculated_dates']
 
-    #print(task_numbers[i])
     # Check level
     if this_level > PLOT_LEVEL:
         continue
@@ -251,14 +229,18 @@ for task in task_objs:
     if max(these_end_dates) > max_date:
         max_date = max(these_end_dates)
 
+    if max(these_calculated_dates) > max_date:
+        max_date = max(these_calculated_dates)
+
     if min(these_end_dates) < min_date:
         min_date = min(these_end_dates)
 
-    # Check for collisions - add a littel time until there is no collision
+    # Check for collisions (overlapping data points) - remove a little time until there is no collision
+    # Remove time so the ordering of the legend entries is correct (we plot from top down...)
     for ind, this_calculated_date in enumerate(these_calculated_dates):
         while data_points and (this_calculated_date in data_points) and (these_end_dates[ind] in data_points[this_calculated_date]):
-            print('Collision for ', this_name, ' on ', this_calculated_date, ' - adding some time')
-            these_end_dates[ind] = these_end_dates[ind] + this_plot_epsilon
+            print('Collision for ', this_name, ' on ', this_calculated_date, 'at ' , these_end_dates[ind], ' - adding some time')
+            these_end_dates[ind] = these_end_dates[ind] - this_plot_epsilon
 
         #  Add to all data points store to look for more collisions
         if this_calculated_date in data_points:
@@ -268,13 +250,23 @@ for task in task_objs:
 
     print('Plotting ', this_name, ': ',   convertListOfDatesToString(these_end_dates))
 
-    # add to plot
-    ax.plot(these_calculated_dates, these_end_dates, label=this_name)
+    # add to plot (plotting single points differently)
+    if len(these_calculated_dates) < 2:
+        ax.plot(these_calculated_dates, these_end_dates, 'o', label=this_name)
+    else:
+        ax.plot(these_calculated_dates, these_end_dates, label=this_name)
 
 # Do plot formatting
 
-# Set the limits
-max_date = datetime(max_date.year, max_date.month + 1, 1)
+# Set the limits (set to line up with months (if range is large enough)
+if min_date + relativedelta(months=4) < max_date:
+    max_date = datetime(max_date.year, max_date.month, 1) + relativedelta(months=1)
+    min_date = datetime(min_date.year, min_date.month, 1)
+
+else:
+    max_date = max_date + timedelta(days=1)
+    min_date = min_date - timedelta(days=1)
+
 ax.set_xlim(min_date, max_date)
 ax.set_ylim(min_date, max_date)
 
