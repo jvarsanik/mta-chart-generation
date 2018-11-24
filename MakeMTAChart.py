@@ -24,7 +24,8 @@ PLOT_LEVEL = 4
 DNAME_IN = 'output'
 FNAME_IN = 'TechTeamCurrent.csv'
 
-TASKS_TO_INCLUDE = ['1.1.2']
+PLOT_TITLE = 'Tech Team Milestones'
+TASKS_TO_INCLUDE = ['1.1.1']
 TASKS_TO_EXCLUDE = []
 
 # FUnctions!
@@ -127,8 +128,6 @@ reader = csv.reader(csvfile)
 row1 = next(reader)
 dates_calculated_str = row1[2:]
 dates_calculated = convertListToDates(dates_calculated_str)
-
-# ensure these dates are in order!
 
 # Initialize the holders
 task_objs = []
@@ -292,13 +291,17 @@ ax.set_axisbelow(True)
 start = mdates.date2num(min_date)
 end = mdates.date2num(max_date)
 triangle_points = np.array([[start, start], [end, start], [end, end]])
-triangle = Polygon(triangle_points, closed=True, color='white')
+# Make triangle - set zorder to 5 to put above all lines (default zorder 2, patch default is 1)
+triangle = Polygon(triangle_points, closed=True, color='white', zorder=5) 
 ax.add_patch(triangle)
 
 # PLot the target line
 target_line_dates = [min_date, max_date]
-ax.plot(target_line_dates, target_line_dates, color='black')
+ax.plot(target_line_dates, target_line_dates, color='black', zorder=10)
 
+# # put x ticks at top
+# ax.xaxis.tick_top()
+# ax.xaxis.set_label_position('top') 
 
 # adjust the labels
 ax.format_xdata = mdates.DateFormatter('%Y-%m-%d')
@@ -314,6 +317,11 @@ ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 
 # Put a legend to the right of the current axis
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+
+# put a title and axis labels
+plt.title(PLOT_TITLE)
+plt.xlabel('Date report generated')
+plt.ylabel('Projected completion date')
 
 # show the plot
 plt.show()
