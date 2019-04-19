@@ -1,4 +1,57 @@
-# Code to read output from teamgantt and the combine it into a csv file from which we can make MTA charts
+''' Code to read output from teamgantt and the combine it into a csv file from which we can make MTA charts
+
+Function:
+    Reads all files in `input` folder matching `file_prefix` and combines the end dates for each task into a .csv file that can then be used to make an MTA chart with `MakeMTAChart.py`
+
+Input:
+    Template: .csv file with tasks that you want to include in MTA chart
+        Basically take the output from TeamGantt, keep only the first two columns, and change the header row. 
+        First row: 
+            First Cell is blank
+            Second cell is "Date Calculated"
+        Each following row:
+            First cell is heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+            Second cell is task name.  (NOTE: Task name is what we use to match the tasks, so if you change the name of a task mid-project, they will show u as separate tasks!)
+
+            Example:
+                ,	Date Calculated,	
+                1,	    Tech Team,	   
+                1.1,	Demo,	        
+                1.1.1,	Sensor,	     
+        Note, template file can also include some dates with already calculated end dates, if you want to just append data.
+
+    Input Files: .csv outputs From TeamGantt.
+        File Names - 
+            the file names must include the name specified in the variable `file_prefix`
+            The file names must include the date that the data was output
+        First row is a set of headers.
+        The files must have the columns labeled:
+            "WBS #" - this is the heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+            "Name / Title"
+            "End Date"
+
+
+
+
+Output:
+    Format: .csv file
+    First row:  headers and dates calculated: 
+        First cell is blank, 
+        Second cell is "Date Calculated" 
+        Each following cell is the date that the end date estimates were generated.
+    Each following row is a task. 
+        First cell is heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+        Second cell is the task name
+        Each following cell is the projeted (or actual) completion date for this task
+
+    Example:
+        ,	Date Calculated,	9/25/18,	10/1/18	,   10/9/18
+        1,	    Tech Team,	    11/9/18,	11/9/18,    11/9/18
+        1.1,	Demo,	        10/23/18,	10/26/18,	10/26/18
+        1.1.1,	Sensor,	        10/15/18,	10/15/18,	10/15/18
+
+
+'''
 
 # import libraries
 import csv
@@ -104,7 +157,7 @@ for line in reader:
         if line[1] in end_dates_dict:
             line.append(end_dates_dict[line[1]])
         else:
-            line.append(' ') # make placeholder if dat is missing this week...
+            line.append(' ') # make placeholder if data is missing this week...
 
 
     writer.writerow(line)
