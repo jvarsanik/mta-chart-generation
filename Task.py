@@ -102,7 +102,8 @@ class TaskList:
         self.task_numbers.append(task.task_number)
 
         # Sort the task numbers
-        self.task_numbers.sort()
+        self.task_numbers.sort(key=lambda x: self.get_comparable_task_number_representation(x))
+        #self.sort_task_numbers()
 
         # If this doesn't have an enddate, then make one from children...
         if not task.enddate:
@@ -139,6 +140,35 @@ class TaskList:
                 the_parent.enddate = task.enddate
 
         # Update the enddate, 
+
+    # Sort task numbers (they are strings so, 10 would be before 2...  need to transform...)
+    def sort_task_numbers(self):
+        task_number_representation = []
+        for task_number in self.task_numbers:
+            task_number_split =  list(map(int, task_number.split('.')))
+            this_representation = 0
+            for ind, val in enumerate(task_number_split):
+                this_representation += 10**(12-3*ind) * task_number_split[ind]
+            #this_representation = 1e12*task_number_split[0] + 1e9*task_number_split[1] + 1e6*task_number_split[2] + 1e3*task_number_split[3]
+            # if len(task_number_split) > 4:
+            #     this_representation += task_number_split[4]
+            # task_number_representation.append(this_representation)
+        
+        # now sort, based on this representation
+        inds = range(len(task_number_representation))
+        sorted_inds = [x for _,x in sorted(zip(task_number_representation, inds))]
+
+        self.task_numbers = [self.task_numbers[i] for i in sorted_inds]
+
+    # Get a comparable task number prepresentation
+    # Note that htis is limited to 999 tasks per parent per level (i think this should be ok)
+    def get_comparable_task_number_representation(self, task_number):
+        task_number_split =  list(map(int, task_number.split('.')))
+        this_representation = 0
+        for ind, val in enumerate(task_number_split):
+            this_representation += 10**(12-3*ind) * task_number_split[ind]
+
+        return this_representation
 
     # Get task
     def get_task(self, task_number):
@@ -258,7 +288,7 @@ class TaskListArray:
             csvfile.write(this_str)
 
         print("OUTPUT TO CSV FILE: ", fname_out)
-        print(this_str)
+        #print(this_str)
 
     # Add - 
     # Maintain global task list of all task nubmers...

@@ -64,8 +64,9 @@ for fname_in in os.listdir(DNAME_IN):
         # Parse the date from the filename
         calculated_date_datetime = dparser.parse(fname_in.replace('_', ':'), fuzzy=True)
         calculated_date_string_pretty = calculated_date_datetime.strftime('%m/%d/%Y')
-        
+
         # parse it and add it to the array
+        full_fname_in = os.path.join(DNAME_IN, fname_in)
         this_task_list = clickup_file_importer.load_tasks_from_file(full_fname_in)
         this_task_list_array.add(this_task_list, calculated_date_string_pretty)
 
