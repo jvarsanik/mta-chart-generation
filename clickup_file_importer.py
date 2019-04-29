@@ -131,9 +131,11 @@ def load_tasks_from_file(full_fname_in):
         line_count += 1
 
         # Make the task object and append to lsit of tasks
+        hierarchical_task_name = f'{space_name}-{project_name}-{list_name}-{parent_id}-{task_id}'
         this_task = (hierarchical_task_number, f'{space_name} - {project_name} - {list_name} - {parent_id} - {task_id} == {task_name}')
+        
         ALL_TASKS.append(this_task)
-        ALL_TASK_LIST.add(Task(task_name, hierarchical_task_number, enddate))
+        ALL_TASK_LIST.add(Task(task_name, hierarchical_task_number, enddate, hierarchical_task_name))
 
         # Make the list of unique hierarchical task numbers
         task_parts = hierarchical_task_number.split('.')
@@ -144,13 +146,14 @@ def load_tasks_from_file(full_fname_in):
         # DO it in reverse order so can propagate endate more efficiently
         for i in reversed(range(1,4)):
             this_task_part = ".".join(task_parts[:i])
-            this_task_part_name = " - ".join(task_part_names[:i])
+            this_task_part_name = "-".join(task_part_names[:i])
             this_single_task_part_name = task_part_names[i-1]
 
             if not (this_task_part, this_task_part_name) in ALL_TASKS:
                 ALL_TASKS.append((this_task_part, this_task_part_name))
-                ALL_TASK_LIST.add(Task(this_single_task_part_name, this_task_part))
-        print(f'Processed {line_count} lines.')
+                ALL_TASK_LIST.add(Task(this_single_task_part_name, this_task_part, None, this_task_part_name))
+        
+    print(f'Processed {line_count} lines.')
 
 
         
@@ -159,7 +162,7 @@ def load_tasks_from_file(full_fname_in):
     # print("ALL TASKS:")
     # for (task_number, task_description) in ALL_TASKS:
     #     print(task_number, ' == ', task_description)
-    
+
     # for task in ALL_TASK_LIST:
     #     print('\tTask: ', task.task_number, '\t ', task.name, ' \t - enddate ', task.enddate)
 

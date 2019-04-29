@@ -23,10 +23,10 @@ import numpy as np
 TOP_LEVEL_TO_PLOT = 3 # In team gantt, these are the major levels (level 1 is the project level)
 BOTTOM_LEVEL_TO_PLOT = 4
 DNAME_IN = 'output'
-FNAME_IN = 'TechTeamCurrent.csv'
+FNAME_IN = 'CurrentClickUpOutput.csv' #'TechTeamCurrent.csv'
 
 MAIN_PLOT_TITLE = 'Tech Team Overall'
-TASKS_TO_INCLUDE = ['1.1']
+TASKS_TO_INCLUDE = []
 TASKS_TO_EXCLUDE = []
 
 # FUnctions!

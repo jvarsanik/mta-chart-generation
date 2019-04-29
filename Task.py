@@ -14,11 +14,12 @@ import os.path
 class Task:
 
     # COnstructor - need hierarchical task number, name, enddate, subtasks, end date
-    def __init__(self, name, task_number, enddate=None):
+    def __init__(self, name, task_number, enddate=None, hierarchical_task_name=None):
         self.name = name
         self.task_number = task_number
         self.enddate = enddate
         self.task_level = len(task_number.split('.'))
+        self.hierarchical_task_name = hierarchical_task_name
 
     def get_task_level_parts(self):
         return self.task_number.split('.')
@@ -270,19 +271,19 @@ class TaskListArray:
     def output_to_csv(self, fname_out):
             #writer = csv.writer(csvfile)
 
-        this_str = "\t\t, Date Calculated "
+        this_str = ",Date Calculated "
         for date_calculated in self.date_calculated_list:
-            this_str += ",\t" + date_calculated
+            this_str += "," + date_calculated
         
         for task in self.global_task_list:
-            this_str += "\n %s, \t\t%s " % (task.task_number, task.name)
+            this_str += "\n %s,%s " % (task.task_number, task.name.replace(',', ' -'))
             for date_calculated in self.date_calculated_list:
-                this_str += ",\t"
+                this_str += ","
                 if task in self.task_list_dict[date_calculated] and self.task_list_dict[date_calculated].get_task(task.task_number).enddate is not None:
 
                     this_str += str(self.task_list_dict[date_calculated].get_task(task.task_number).enddate.strftime('%m/%d/%Y'))
                 else:
-                    this_str += "\t" # just add this tab for spacing
+                    this_str += "" # "/t" just add this tab for spacing
 
         with open(fname_out, 'w') as csvfile:
             csvfile.write(this_str)
@@ -307,6 +308,17 @@ class TaskListArray:
             if task_number not in self.task_numbers:
                 self.task_numbers.append(task_number)
                 self.global_task_list.add(task_list.get_task(task_number))
+            # Verify that the task number and task name are the same for any list that is added...
+            task_name_new = task_list.get_task(task_number).name
+            task_name_old = self.global_task_list.get_task(task_number).name
+            if task_name_new != task_name_old:
+                print('ERROR: new and old task names do not match for task number {task_number}!!!: {task_name_new} <==> {task_name_old}')
+
+            hierarchical_task_name_new = task_list.get_task(task_number).hierarchical_task_name
+            hierarchical_task_name_old = self.global_task_list.get_task(task_number).hierarchical_task_name
+            if hierarchical_task_name_new != hierarchical_task_name_old:
+                print('ERROR: new and old hierarchical task names do not match for task number {task_number}!!!: {hierarchical_task_name_new} <==> {hierarchical_task_name_old}')
+
         self.task_numbers.sort()
 
 

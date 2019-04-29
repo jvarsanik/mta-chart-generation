@@ -10,7 +10,7 @@ Input:
             First Cell is blank
             Second cell is "Date Calculated"
         Each following row:
-            First cell is heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+            First cell is hierarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
             Second cell is task name.  (NOTE: Task name is what we use to match the tasks, so if you change the name of a task mid-project, they will show u as separate tasks!)
 
             Example:
@@ -26,7 +26,7 @@ Input:
             The file names must include the date that the data was output
         First row is a set of headers.
         The files must have the columns labeled:
-            "WBS #" - this is the heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+            "WBS #" - this is the hierarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
             "Name / Title"
             "End Date"
 
@@ -40,7 +40,7 @@ Output:
         Second cell is "Date Calculated" 
         Each following cell is the date that the end date estimates were generated.
     Each following row is a task. 
-        First cell is heirarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
+        First cell is hierarchical task number (i.e. 1.1.2 means it is the second subtask of the first subtask of the first major task)
         Second cell is the task name
         Each following cell is the projeted (or actual) completion date for this task
 
