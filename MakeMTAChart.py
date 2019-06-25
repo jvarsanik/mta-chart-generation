@@ -21,13 +21,13 @@ import numpy as np
 
 # User variables
 SAVE_ALL_PLOTS = True # TO save all plots, otherwise just saves top level plot
-TOP_LEVEL_TO_PLOT = 2 # In team gantt, these are the major levels (level 1 is the project level)
+TOP_LEVEL_TO_PLOT = 2 # In team gantt, 2 is the major levels (level 1 is the project level)
 BOTTOM_LEVEL_TO_PLOT = 4
 DNAME_IN = 'output'
 FNAME_IN = 'CurrentClickUpOutput.csv' #'TechTeamCurrent.csv'
 
 MAIN_PLOT_TITLE = 'Tech Team Overall'
-TASKS_TO_INCLUDE = []
+TASKS_TO_INCLUDE = ['2']
 TASKS_TO_EXCLUDE = []
 
 # FUnctions!
@@ -127,7 +127,7 @@ def make_plot_for_tasks(task_objs, plot_level, tasks_to_include, tasks_to_exclud
     # Go through each task and add to plot
     for task in task_objs:
         this_level = task['level']
-        this_number = task['task_number']
+        this_number = task['task_number'].strip()
         these_end_dates = task['end_dates']
         these_calculated_dates = task['calculated_dates']
 
@@ -354,29 +354,33 @@ def import_tasks_from_csv(full_fname_in, tasks_to_include, tasks_to_exclude, top
 
 
 ## SCRIPT IS HERE
-# Set up outputs
-todays_date = date.today().strftime('%Y%m%d')
-DNAME_OUT = os.path.join(DNAME_IN, todays_date)
-if not os.path.exists(DNAME_OUT):
-    os.mkdir(DNAME_OUT)
+def main():
+    # Set up outputs
+    todays_date = date.today().strftime('%Y%m%d')
+    DNAME_OUT = os.path.join(DNAME_IN, todays_date)
+    if not os.path.exists(DNAME_OUT):
+        os.mkdir(DNAME_OUT)
 
-# import the data form the csv
-full_fname_in = os.path.join(DNAME_IN, FNAME_IN)
-task_objs, top_level_tasks = import_tasks_from_csv(full_fname_in, TASKS_TO_INCLUDE, TASKS_TO_EXCLUDE, TOP_LEVEL_TO_PLOT)
+    # import the data form the csv
+    full_fname_in = os.path.join(DNAME_IN, FNAME_IN)
+    task_objs, top_level_tasks = import_tasks_from_csv(full_fname_in, TASKS_TO_INCLUDE, TASKS_TO_EXCLUDE, TOP_LEVEL_TO_PLOT)
 
-# Make one plot for the highest level, then go through each top level task and plot the subtasks.
-print('Making overall plot at level: ', TOP_LEVEL_TO_PLOT)
-make_plot_for_tasks(task_objs, TOP_LEVEL_TO_PLOT, TASKS_TO_INCLUDE, TASKS_TO_EXCLUDE, MAIN_PLOT_TITLE)
-fname_out = os.path.join(DNAME_OUT, todays_date + '-' + MAIN_PLOT_TITLE.replace(" ", "") + '.png')
-plt.savefig(fname_out, dpi=300)
-# Now, for each top level task, make a plot of its sub tasks
-for this_top_level_task in top_level_tasks:
-    print('making plot for: ', this_top_level_task['task_name'], ' - task number: ', this_top_level_task['task_number'])
-    make_plot_for_tasks(task_objs, BOTTOM_LEVEL_TO_PLOT, [this_top_level_task['task_number']], [], this_top_level_task['task_name'])
+    # Make one plot for the highest level, then go through each top level task and plot the subtasks.
+    print('Making overall plot at level: ', TOP_LEVEL_TO_PLOT)
+    make_plot_for_tasks(task_objs, TOP_LEVEL_TO_PLOT, TASKS_TO_INCLUDE, TASKS_TO_EXCLUDE, MAIN_PLOT_TITLE)
+    fname_out = os.path.join(DNAME_OUT, todays_date + '-' + MAIN_PLOT_TITLE.replace(" ", "") + '.png')
+    plt.savefig(fname_out, dpi=300)
+    # Now, for each top level task, make a plot of its sub tasks
+    for this_top_level_task in top_level_tasks:
+        print('making plot for: ', this_top_level_task['task_name'], ' - task number: ', this_top_level_task['task_number'])
+        make_plot_for_tasks(task_objs, BOTTOM_LEVEL_TO_PLOT, [this_top_level_task['task_number']], [], this_top_level_task['task_name'])
 
-    if SAVE_ALL_PLOTS:
-        fname_out = os.path.join(DNAME_OUT, todays_date + '-' + this_top_level_task['task_name'].replace(" ", "") + '.png')
-        plt.savefig(fname_out, dpi=300)
+        if SAVE_ALL_PLOTS:
+            fname_out = os.path.join(DNAME_OUT, todays_date + '-' + this_top_level_task['task_name'].replace(" ", "") + '.png')
+            plt.savefig(fname_out, dpi=300)
 
-# show the plots
-plt.show()
+    # show the plots
+    plt.show()
+
+if __name__ == "__main__":
+    main()

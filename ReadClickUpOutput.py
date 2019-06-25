@@ -46,38 +46,43 @@ DNAME_OUT = 'output'
 fname_out = 'CurrentClickUpOutput.csv'
 
 
-# Initialize
-todays_date = date.today().strftime('%Y%m%d')
+def main():
+    # Initialize
+    todays_date = date.today().strftime('%Y%m%d')
 
-this_task_list_array = TaskListArray()
+    this_task_list_array = TaskListArray()
 
-# Get file
-#fname_in = '12252683qcht7zn.csv'
-#full_fname_in = os.path.join(DNAME_IN, fname_in)
+    # Get file
+    #fname_in = '12252683qcht7zn.csv'
+    #full_fname_in = os.path.join(DNAME_IN, fname_in)
 
-# Loop through each file
-for fname_in in os.listdir(DNAME_IN):
-    if fname_in.startswith(file_prefix):
-        # Print update
-        print('Reading ', fname_in)
+    # Loop through each file
+    for fname_in in os.listdir(DNAME_IN):
+        if fname_in.startswith(file_prefix):
+            # Print update
+            print('Reading ', fname_in)
 
-        # Parse the date from the filename
-        calculated_date_datetime = dparser.parse(fname_in.replace('_', ':'), fuzzy=True)
-        calculated_date_string_pretty = calculated_date_datetime.strftime('%m/%d/%Y')
+            # Parse the date from the filename
+            calculated_date_datetime = dparser.parse(fname_in.replace('_', ':'), fuzzy=True)
+            calculated_date_string_pretty = calculated_date_datetime.strftime('%m/%d/%Y')
 
-        # parse it and add it to the array
-        full_fname_in = os.path.join(DNAME_IN, fname_in)
-        this_task_list = clickup_file_importer.load_tasks_from_file(full_fname_in)
-        this_task_list_array.add(this_task_list, calculated_date_string_pretty)
+            # parse it and add it to the array
+            full_fname_in = os.path.join(DNAME_IN, fname_in)
+            this_task_list = clickup_file_importer.load_tasks_from_file(full_fname_in)
+            this_task_list_array.add(this_task_list, calculated_date_string_pretty)
 
 
-# output to csv
-output_fname = os.path.join(DNAME_OUT, todays_date + '-ClickUp.csv')
-this_task_list_array.output_to_csv(output_fname)
+    # output to csv
+    output_fname = os.path.join(DNAME_OUT, todays_date + '-ClickUp.csv')
+    this_task_list_array.output_to_csv(output_fname)
 
-# copy to current
-current_fname = os.path.join(DNAME_OUT, fname_out)  # final output name "current"
-print('Done writing, copying to ', current_fname)
-copy(output_fname, current_fname)
+    # copy to current
+    current_fname = os.path.join(DNAME_OUT, fname_out)  # final output name "current"
+    print('Done writing, copying to ', current_fname)
+    copy(output_fname, current_fname)
 
-print('DONE')
+    print('DONE')
+
+
+if __name__ == "__main__":
+    main()

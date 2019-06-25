@@ -276,7 +276,7 @@ class TaskListArray:
             this_str += "," + date_calculated
         
         for task in self.global_task_list:
-            this_str += "\n %s,%s " % (task.task_number, task.name.replace(',', ' -'))
+            this_str += "\n%s,%s" % (task.task_number, task.name.replace(',', ' -'))
             for date_calculated in self.date_calculated_list:
                 this_str += ","
                 if task in self.task_list_dict[date_calculated] and self.task_list_dict[date_calculated].get_task(task.task_number).enddate is not None:
